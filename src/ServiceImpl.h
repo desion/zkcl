@@ -1,0 +1,195 @@
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <signal.h>
+#include "log.h"
+#include "CacheServer_types.h"
+#include "leveldb/write_batch.h"
+
+using namespace std;
+using namespace boost;
+
+class ServiceImpl : virtual public operateIf{
+    private:
+          leveldb::DB* db;
+          Json::Reader reader;
+    public: 
+    ServiceImpl(){
+    }
+
+    ServiceImpl(leveldb::DB* _db){
+          db = _db;
+    }
+
+    /**
+    *get the data from db
+    */
+    void get(std::string& _return, const std::string& rowkey) {
+        leveldb::Status status = db->Get(leveldb::ReadOptions(), rowkey, &_return);
+    }
+    
+    /**
+    *delete the data from db
+    */
+    int32_t delkey(const std::string& rowkey) {
+	    Log(CACHE_LOG_NOTICE,"del\t%s",rowkey.c_str());
+            db->Delete(leveldb::WriteOptions(), rowkey);
+            return 0;
+    }
+    //put the data to cache
+    /**
+    type:1 string
+    type:2 int
+    type:3 long
+    */
+    int32_t putjson(const std::string& rowkey, const std::string& key, const std::string& value, const int32_t type) {
+	 Json::Value jsonVal;
+	 string strJson;
+	 leveldb::Status status = db->Get(leveldb::ReadOptions(),rowkey, &strJson);
+	 Log(CACHE_LOG_NOTICE,"put\t%s\t%s\t%s\t%d",rowkey.c_str(),key.c_str(),value.c_str(),type);
+	 Log(CACHE_LOG_DEBUG,"put:get data from leveldb key:%s value:%s",rowkey.c_str(),strJson.c_str());
+	  if(status.ok()){
+	       reader.parse(strJson, jsonVal);
+	       switch(type){
+		  case CACHE_TYPE_INT:
+		      jsonVal[key] = lexical_cast<int>(value);
+		      break;
+		  case CACHE_TYPE_LONG:
+		      jsonVal[key] = lexical_cast<unsigned int>(value);
+		      break;
+		  default:
+		      jsonVal[key] = value;
+	      }
+	  }else{
+	     switch(type){
+		case CACHE_TYPE_INT:
+		     jsonVal[key] = lexical_cast<int>(value);
+		     break;
+		case CACHE_TYPE_LONG:
+		     jsonVal[key] = lexical_cast<unsigned int>(value);
+		     break;
+		default:
+		     jsonVal[key] = value;
+		     break;
+	    }
+	}
+	db->Put(leveldb::WriteOptions(),rowkey, jsonVal.toStyledString());
+	return 0;
+    }
+
+    /**
+    *put the data to db and cache
+    */
+    int32_t put(const std::string& rowkey, const std::string& value) {
+	  Log(CACHE_LOG_NOTICE,"put\t%s\t%s",rowkey.c_str(),value.c_str());
+	  db->Put(leveldb::WriteOptions(),rowkey, value);
+          return 0;
+    }
+ 
+    /**
+    *dump the redis cache to leveldb
+    */
+    int32_t dump() {
+        string dumpPath = conf.dumpPath;
+	FILE *fp = fopen(dumpPath.c_str(),"w");
+    	if (fp) {
+            leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+            for (it->SeekToFirst(); it->Valid(); it->Next()) {
+                fprintf(fp,"%s\t%s\n",it->key().ToString().c_str(),it->value().ToString().c_str());
+            }
+            fclose(fp);
+            if(it->status().ok()){
+                return 0;
+            }else{
+                return 1;
+            }
+        }else{
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+    *通过dump的文件，加载数据
+    */ 
+    int32_t load(const std::string& file){
+        return 0;
+    }
+
+    /**
+    *返回当前库中所有key的数量
+    */
+    int32_t count(){
+        int32_t num  = 0;
+   	leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+        for (it->SeekToFirst(); it->Valid(); it->Next()) {
+                num++;
+        }
+        return num;
+    }
+    /**
+    *遍历整个库中的所有key
+    */
+    int32_t scan(){
+         return 0;
+    }
+    /**
+    *遍历范围内的所有key
+    */
+    int32_t range(const std::string& from, const std::string& to){
+         return 0;
+    }
+    /**
+    *获取服务当前状态
+    */
+    void status(std::string& _return){
+        char hostname[256];
+        gethostname(hostname, sizeof(hostname));
+        hostent* host = gethostbyname(hostname);
+        in_addr* address = (in_addr *)host->h_addr;
+        char* ip = inet_ntoa(*address);
+        char buf[1024];
+        sprintf(buf,"host:%s ip:%s status:ok",hostname,ip);
+        Log(CACHE_LOG_DEBUG,"test");
+        _return = string(buf);
+    }
+    /**
+    *关闭leveldb服务端
+    */
+    int32_t shutdown(){
+        cout << conf.pidPath << endl;
+        FILE* op = fopen(conf.pidPath.c_str(),"r");
+        char  buf[32];
+        if(fgets(buf,32,op) != NULL){
+            int pid = atoi(buf);
+            delete db;
+            kill(pid,SIGINT);
+        }
+        return 0;
+    }
+    /**
+    *批量插入数据
+    */
+    int32_t putbatch(const std::vector<kv> & kvs){
+        leveldb::WriteBatch batch;
+        vector<kv>::const_iterator iter;
+        for(iter = kvs.begin();iter != kvs.end();iter++){
+           batch.Put(iter->key, iter->value); 
+        }
+        leveldb::Status status = db->Write(leveldb::WriteOptions(), &batch);
+        if(status.ok()){
+             return kvs.size();
+        }else{
+            return -1;
+        }
+    }
+
+    /**
+    *清空key-value库
+    */
+    int32_t clear(){
+        Log(CACHE_LOG_NOTICE,"Clear the database");
+	return 0;
+        
+    }
+};

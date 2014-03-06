@@ -1,0 +1,11 @@
+#! /bin/sh
+#
+# Created by configure
+
+LIBS='-lrt -lpthread ' \
+'./configure' \
+'--disable-option-checking' \
+'--prefix=/data1/hadoop/hadoop-install/thrift' \
+'--cache-file=/dev/null' \
+'--srcdir=.' \
+"$@"

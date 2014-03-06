@@ -1,0 +1,19 @@
+struct kv{
+	1:string key
+	2:string value
+}
+service operate{
+	string get(1:string rowkey)
+	i32 putjson(1:string rowkey,2:string key,3:string value,4:i32 type)
+	i32 delkey(1:string rowkey)
+        i32 dump()
+	i32 put(1:string rowkey,2:string value)
+	i32 load(1:string file)
+	i32 shutdown()
+	i32 clear()
+	i32 count()
+	i32 scan()
+	i32 range(1:string afrom,2:string to)
+        i32 putbatch(1:list<kv> kvs)
+	string status()
+}

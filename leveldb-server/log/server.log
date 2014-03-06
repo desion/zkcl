@@ -1,0 +1,25 @@
+[17561] 21 Aug 11:49:03 # CacheServer start ...
+[18610] 21 Aug 11:49:16 . [1127265376] Create thrift client of 127.0.0.1
+[17561] 21 Aug 11:49:16 . test
+[18980] 21 Aug 11:49:20 . [-1377459104] Create thrift client of 127.0.0.1
+[17561] 21 Aug 11:49:20 * put	1	2
+[28873] 21 Aug 12:35:15 # CacheServer start ...
+[28873] 21 Aug 12:35:25 . test
+[28873] 21 Aug 12:37:40 * put	1	{"num1":2,"num2":3}
+[28873] 21 Aug 12:39:18 * put	1	num1	3	2
+[28873] 21 Aug 12:39:18 . put:get data from leveldb key:1 value:{"num1":2,"num2":3}
+[6009] 21 Aug 13:30:16 . [2092876896] Create thrift client of 127.0.0.1
+[28873] 21 Aug 13:30:17 . test
+[6229] 21 Aug 13:30:19 . [-473410464] Create thrift client of 127.0.0.1
+[28873] 21 Aug 13:30:19 . test
+[6677] 21 Aug 13:30:25 . [-1874418592] Create thrift client of 127.0.0.1
+[7907] 21 Aug 13:30:39 . [1169314912] Create thrift client of 127.0.0.1
+[8502] 21 Aug 13:30:46 . [2077099104] Create thrift client of 127.0.0.1
+[8578] 21 Aug 13:30:47 . [1117680736] Create thrift client of 127.0.0.1
+[8624] 21 Aug 13:30:47 . [-1159273376] Create thrift client of 127.0.0.1
+[8714] 21 Aug 13:30:48 . [21869664] Create thrift client of 127.0.0.1
+[8847] 21 Aug 13:30:50 . [-208227232] Create thrift client of 127.0.0.1
+[9099] 21 Aug 13:30:53 . [-744946592] Create thrift client of 127.0.0.1
+[9155] 21 Aug 13:30:54 . [-350858144] Create thrift client of 127.0.0.1
+[9219] 21 Aug 13:30:55 . [1359324256] Create thrift client of 127.0.0.1
+[9274] 21 Aug 13:30:55 . [1940604000] Create thrift client of 127.0.0.1

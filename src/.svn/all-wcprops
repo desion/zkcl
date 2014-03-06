@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src
+END
+server.pid
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/server.pid
+END
+srm.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/srm.cpp
+END
+CacheClient.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/CacheClient.cpp
+END
+cache.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/cache.cpp
+END
+utils.h
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/utils.h
+END
+getip.c
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/getip.c
+END
+CacheServer.thrift
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/CacheServer.thrift
+END
+CacheServer
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/CacheServer
+END
+ld_so_init.sh
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/ld_so_init.sh
+END
+configuration.h
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/configuration.h
+END
+CacheClient
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/CacheClient
+END
+cache
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/cache
+END
+log.h
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/log.h
+END
+getip
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/getip
+END
+ServiceImpl.h
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/ServiceImpl.h
+END
+CacheServer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/CacheServer.cpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/realtime_search/!svn/ver/6273/webdata/project/cache_server/branches/cache_server_highfansnum/src/Makefile
+END

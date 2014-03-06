@@ -1,0 +1,199 @@
+#include "utils.h"
+#include "configuration.h"
+#include "log.h"
+using namespace std;
+using namespace boost;
+using namespace apache::thrift;
+using namespace apache::thrift::protocol;
+using namespace apache::thrift::transport;
+#define CLIENT_VERSION "1.0"
+#define DEBUG 1
+#define CACHE_SIZE 102400
+Json::Reader reader;
+Json::Value root;
+Json::Value configuration;
+
+struct cacheConfig conf;
+map<string,operateClient> servicePool;
+void usage(){
+    fprintf(stderr,"Usage: CacheClient\n");
+    fprintf(stderr,"-v -version  show the verion\n");
+    fprintf(stderr,"-h -help  show the usage\n");
+    fprintf(stderr,"-get [rowkey] get the data\n");
+    fprintf(stderr,"-del [rowkey] delete the data from cache\n");
+    fprintf(stderr,"-putjson [rowkey] [key] [value] insert the data to cache\n");
+    fprintf(stderr,"-put [rowkey] [value] insert the data to cache and db\n");
+    fprintf(stderr,"-dump dump the data to file\n");
+    fprintf(stderr,"-status get the status of cluster\n");
+}
+
+//create the thrift client by host ip
+operateClient CreateService(const string& host)
+{
+    Log(CACHE_LOG_DEBUG,"[%d] Create thrift client of %s",(int)pthread_self(),host.c_str());
+    shared_ptr<TTransport> socket(new TSocket(host, conf.thriftPort));
+    cout << "ip: " << host << endl;
+    shared_ptr<TTransport> transport(new TFramedTransport(socket));
+    shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+    //shared_ptr<TProtocol> protocol(new TCompactProtocol(transport));
+    //shared_ptr<TTransport> socket(new TSocket(host, conf.thriftPort));
+    //shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+    //shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+    operateClient client(protocol);
+    try {
+            transport->open();
+            return client;
+        } catch (TException &tx) {
+            tx.what();
+            transport->close();
+            return client;
+        }
+}
+
+class CacheService{
+    private:
+        shared_ptr<TTransport> transport;
+        string host;
+        int port;
+    public:
+        CacheService(){}
+        CacheService(string _host,int _port){
+            host = _host;
+            port = _port;
+            shared_ptr<TTransport> _socket(new TSocket(host, port));
+            shared_ptr<TTransport> _transport(new TFramedTransport(_socket));
+            shared_ptr<TProtocol> _protocol(new TBinaryProtocol(_transport));
+            try {
+                transport = _transport;
+                _transport->open();
+            } catch (TException &tx) {
+                tx.what();
+                _transport->close();
+            }
+        }
+        void close(){
+            transport->close();
+        }
+     
+};
+struct thread_data{
+    long group;
+    vector<pair<string,string> > *group_data;
+    char first_service[32];
+    char second_service[32];
+};
+
+struct thread_res{
+    double use_time;
+    long load_record;
+    long group;
+    char first_service[32];
+    char second_service[32];
+};
+
+
+
+int main(int argc,char *argv[]){
+    //load the config file
+    loadConfig("./service.ini",conf);
+    if(argc == 2){
+        if(strcmp(argv[1],"-v") == 0 || strcmp(argv[1],"-version") == 0){
+            printf("CacheClient Vserion: %s",CLIENT_VERSION);
+        }else if(strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"-help") ==0 ){
+            usage();
+        }else if(strcmp(argv[1],"-dump") == 0){
+            long start_usecs = get_time_usecs();
+            operateClient client = CreateService("127.0.0.1");
+            client.dump();
+            long end_usecs = get_time_usecs();
+            double secs = (double)(end_usecs - start_usecs) / (double)1000;
+            cout <<  " use time:" << secs << endl;
+        }else if(strcmp(argv[1],"-status") == 0){
+            vector<string>::iterator serverIter = conf.serverGroup.begin();
+            for(;serverIter != conf.serverGroup.end();++serverIter){
+                try{
+                    string status;
+                    operateClient client = CreateService(*serverIter);
+                    client.status(status);
+                    cout << status << endl;
+                }catch(TException &tx){
+                    cout << "server has down" << endl;
+                }
+            }
+            printf("total cache server %d",conf.serverGroup.size());
+        }else if(strcmp(argv[1],"-shutdown") == 0){
+            vector<string>::iterator serverIter = conf.serverGroup.begin();
+            for(;serverIter != conf.serverGroup.end();++serverIter){
+                operateClient client = CreateService(*serverIter);
+                try{
+                    client.shutdown();
+                }catch(TException &tx){
+                    Log(CACHE_LOG_WARNING,"%s server has been shutdown!",serverIter->c_str());
+                }
+            }
+            printf("all servers have been shutdown");
+        }else{
+            usage();
+        }
+    }else if(argc == 3){
+        if(strcmp(argv[1],"-get") == 0 ){
+            //get the data from db
+            long start_usecs = get_time_usecs();
+            char* uid = argv[2];
+            unsigned int hash = genHashFunction((const unsigned char *)uid, strlen(uid));
+            int groupNum = conf.serverGroup.size();
+            string group = conf.serverGroup[hash%groupNum];
+            long timestamp = get_time_usecs();
+            string jsonStr;
+            if(timestamp % 2 == 0){
+                operateClient client = CreateService(group);
+                client.get(jsonStr,string(uid));
+                cout << "get record from:" << group << '\n';
+            }else{
+                operateClient client = CreateService(group);
+                client.get(jsonStr,string(uid));
+                cout << "get record from:" << group << '\n';
+            }
+            cout << jsonStr << endl;
+            long end_usecs = get_time_usecs();
+            double secs = (double)(end_usecs - start_usecs) / (double)1000;
+            cout <<  " use time:" << secs << endl;
+        }else if(strcmp(argv[1],"-del") == 0){
+            //delete the data by row key
+            char* uid = argv[2];
+            unsigned int hash = genHashFunction((const unsigned char *)uid, strlen(uid));
+            int groupNum = conf.serverGroup.size();
+            string group = conf.serverGroup[hash%groupNum];
+            operateClient client = CreateService(group);
+            client.delkey(string(uid));
+        }else if(strcmp(argv[1],"-shutdown") == 0){
+            //shutdown the spcify server
+            try{
+                string host = string(argv[2]);
+                operateClient client = CreateService(host);
+                client.shutdown();
+            }catch(TException &tx){
+                Log(CACHE_LOG_WARNING,"%s server has been shutdown!",argv[2]);
+            }
+            printf("server %s has been shutdown",argv[2]);
+        }else{
+            usage();
+        }
+    }else if(argc == 4){
+        if(strcmp(argv[1], "-put") == 0){
+           char* key = argv[2];
+           string value = string(argv[3]);
+           unsigned int hash = genHashFunction((const unsigned char *)key, strlen(key));
+           int groupNum = conf.serverGroup.size();
+           string group = conf.serverGroup[hash%groupNum];
+           operateClient client = CreateService(group);
+           client.put(string(key),value);
+        }else{
+            usage();
+        }
+    }else{
+         usage();
+    }
+    return 0;
+}
